@@ -8,6 +8,7 @@
 #include "elf.h"
 #include "paging.h"
 #include "fs.h"
+#include "dp_defs.h"
 
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()
@@ -278,6 +279,11 @@ deallocuvm(pde_t *pgdir, uint oldsz, uint newsz)
       kfree(v);
       *pte = 0;
     }
+    else if(swapped(*pte))
+	{
+		uint db = get_swapped_block_id(pte);
+		bfree_page(ROOTDEV,db);
+	}
   }
   return newsz;
 }
@@ -294,6 +300,9 @@ freevm(pde_t *pgdir)
   deallocuvm(pgdir, KERNBASE, 0);
   for(i = 0; i < NPDENTRIES; i++){
     if(pgdir[i] & PTE_P){
+	if(swapped(pgdir[i])){
+		panic("Not implemented!");
+	}
       char * v = P2V(PTE_ADDR(pgdir[i]));
       kfree(v);
     }
@@ -307,13 +316,96 @@ freevm(pde_t *pgdir)
 pte_t*
 select_a_victim(pde_t *pgdir)
 {
-	return 0;
+		
+	int i,j;
+	pde_t *pde;
+	pte_t *victim = 0;
+	int k = 10;
+	while(victim==0)
+	{
+		for(i=0;i<NPDENTRIES;i++)
+		{
+			if(pgdir[i]&PTE_P)
+			{
+				pde = &pgdir[i];				
+				for(j=0;j<NPTENTRIES;j++)
+				{
+					if(pde[j]&PTE_P)
+					{
+						if((pde[j]&PTE_A)==0)
+						{
+							victim=&pde[j];
+							break;
+						}
+					}
+					
+				}
+			}
+		}
+		if(victim==0)
+		{
+			clearaccessbit(pgdir);
+		}
+	}
+	return victim;	
+	//return 0;
 }
-
+unsigned long int bit = 1;
+int rand(){
+	bit = bit * 1103515245 + 12345;
+	return (unsigned int)(bit / 65536) % 32768;
+ }
 // Clear access bit of a random pte.
+
 void
 clearaccessbit(pde_t *pgdir)
 {
+	int i,j;
+	pde_t *pde;
+	int flag = 0;
+	while(flag!=1)
+	{
+		i = rand();
+		if(i>=0&&i<NPDENTRIES)
+		{
+			if(pgdir[i]&PTE_P)
+			{
+				pde = &pgdir[i];
+				j = rand();
+				if(pde&PTE_P)
+				{
+					clear_access(pde[j])
+					flag = 1;
+				}
+				else
+					continue;
+			}
+			else
+				continue;
+		}	
+		else
+			continue;
+	}
+
+	
+	/*for(i = 0;i<NPDENTRIES;i++)
+	{
+		if(pgdir[i]&PTE_P)
+		{
+			pde = &pgdir[i];
+			for(j=0;j<NPTENTRIES;j++)
+			{
+				if(pde&PTE_P)
+				{
+					clear_access(pde[i]);
+				}
+			}
+		}
+	}*/
+	
+	
+		
+	
 }
 
 // return the disk block-id, if the virtual address
@@ -321,7 +413,17 @@ clearaccessbit(pde_t *pgdir)
 int
 getswappedblk(pde_t *pgdir, uint va)
 {
-  return -1;
+	pte_t *pte;
+	pte = uva2pte(pgdir,va);
+	if(pte==0)
+	{
+		return -1;
+	}  
+	if(!swapped(*pte))
+		return -1;
+	else
+		return (*pte)/(1<<12);
+	//return -1;
 }
 
 // Clear PTE_U on a page. Used to create an inaccessible

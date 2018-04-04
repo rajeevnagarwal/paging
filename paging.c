@@ -9,6 +9,7 @@
 #include "spinlock.h"
 #include "paging.h"
 #include "fs.h"
+#include "dp_defs.h"
 
 /* Allocate eight consecutive disk blocks.
  * Save the content of the physical page in the pte
@@ -18,6 +19,14 @@
 void
 swap_page_from_pte(pte_t *pte)
 {
+	uint db;
+	while((db=balloc_page(SWAPPING_DEVICE))==0);
+	write_page_to_disk(SWAPPING_DEVICE,P2V(PTE_ADDR(*pte)),block);
+	set_swapped(*pte);
+	clear_present(*pte);
+	*pte = (*pte & ((uint)0x0fff))|(db<<12);
+	kfree(P2V(PTE_ADDR(*pte)));
+	
 }
 
 /* Select a victim and swap the contents to the disk.
@@ -25,8 +34,21 @@ swap_page_from_pte(pte_t *pte)
 int
 swap_page(pde_t *pgdir)
 {
-	panic("swap_page is not implemented");
-	return 1;
+
+	pte_t *victim;
+	victim = select_a_victim(pgdir);
+	swap_page_from_pte(victim);
+	return 1;	
+	//panic("swap_page is not implemented");
+	//return 1;
+}
+
+void allocate_page(pde_t *pgdir,uint addr)
+{
+	while(allocuvm(pgdir,PGROUNDOWN(addr),PGROUNDOWN(addr)+PGSIZE)==0)
+	{
+		swap_page(pgdir);
+	}
 }
 
 /* Map a physical page to the virtual address addr.
@@ -37,7 +59,39 @@ swap_page(pde_t *pgdir)
 void
 map_address(pde_t *pgdir, uint addr)
 {
-	panic("map_address is not implemented");
+
+	//cprintf("hello rajeev");
+	pde_t *pde;
+	pte_t *pte;
+	pte = uva2pte(pgdir, addr);
+	if(pte==0)
+	{
+		pde = &pgdir[PDX(addr)];
+		if(swapped(*pde))
+		{
+		}
+		else
+		{
+			allocate_page(pgdir,addr);
+			return;
+		}
+	}
+	if(swapped(*pte))
+	{
+		uint db = get_swapped_block_id(pte);
+		unset_swapped(*pte);
+		read_page_from_disk(SWAPPING_DISK,P2V(PTE_ADDR(*pte)),db);
+		bfree_page(SWAPPING_DISK,db);
+		
+		
+	}
+	else
+	{
+		allocate_page(pgdir,addr);
+		
+	}
+	
+	//panic("done");
 }
 
 /* page fault handler */

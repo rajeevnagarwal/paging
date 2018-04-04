@@ -88,7 +88,14 @@ kalloc(void)
     acquire(&kmem.lock);
   r = kmem.freelist;
   if(r)
+	{
     kmem.freelist = r->next;
+    //r = r - KERNBASE;
+	}
+ /*else
+	{
+	r = 0;
+	}*/
   if(kmem.use_lock)
     release(&kmem.lock);
   return (char*)r;
