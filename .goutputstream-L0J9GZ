@@ -94,12 +94,10 @@ balloc_page(uint dev)
 			m = 0xff;
 			if((bp->data[bi] & m) == 0){
 				bp->data[bi] |=m;
-				//begin_op();
 				log_write(bp);
 				brelse(bp);
-				//end_op();
 				bzero(dev,b+bi);
-				numallocblocks+=8;
+				numallocblocks += 8;
 				return b + bi; 
 			}
 		}
@@ -112,23 +110,6 @@ balloc_page(uint dev)
 void
 bfree_page(int dev, uint b)
 {
-	struct buf *bp;
-	int bi,m;
-
-	//readsb(dev,&sb);
-	bp = bread(dev,BBLOCK(b,sb));
-	//bi = b % BPB;
-
-	m=0xff;
-	if((bp->data[bi] & m)==0){
-		panic("Already Freed");
-	}
-	bp->data[bi] &= ~m;
-	//begin_op();
-	log_write(bp);
-	brelse(bp);
-	//end_op();
-	numallocblocks-=8;
 }
 
 // Free a disk block.
@@ -319,6 +300,7 @@ iget(uint dev, uint inum)
   ip = empty;
   ip->dev = dev;
   ip->inum = inum;
+
   ip->ref = 1;
   ip->valid = 0;
   release(&icache.lock);
@@ -678,6 +660,7 @@ skipelem(char *path, char *name)
 // Must be called inside a transaction since it calls iput().
 static struct inode*
 namex(char *path, int nameiparent, char *name)
+
 {
   struct inode *ip, *next;
 
