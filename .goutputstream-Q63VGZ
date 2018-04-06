@@ -191,10 +191,10 @@ void            clearpteu(pde_t *pgdir, char *uva);
 
 #define swap_bit (((uint)1<<9))
 #define set_swapped(x) ((x)=((uint)(x)|swap_bit)) 
-#define clear_swap(x) ((x) = ((uint)(x) & (~(uint)0 ^ swap_bit)))
+#define clear_swap(x) ((x) = ((x) = ((uint)(x) & (~(uint)0 ^ swap_bit)))
 #define clear_access(x) ((x) = ((uint)(x) & (~(uint)0 ^ PTE_A)))
-#define swapped(x) ((uint)(x) & swap_bit)
-#define clear_present(x) ((x) = ((uint)(x) & (~(uint)0 ^ PTE_P)))
+#define swapped(x) ((uint)(x) & SWAP_BIT)
+#define clear_present(x) (x) = ((uint)(x) & (~(uint)0 ^ PTE_P)))
 #define SWAPPING_DISK ROOTDEV
 static inline uint get_swapped_block_id(const uint *pte)
 {

@@ -1,4 +1,5 @@
 #include "types.h"
+#include "defs.h"
 #include "param.h"
 #include "memlayout.h"
 #include "mmu.h"
@@ -8,7 +9,6 @@
 #include "spinlock.h"
 #include "paging.h"
 #include "fs.h"
-#include "defs.h"
 
 
 /* Allocate eight consecutive disk blocks.
@@ -20,8 +20,8 @@ void
 swap_page_from_pte(pte_t *pte)
 {
 	uint db;
-	while((db=balloc_page(SWAPPING_DISK))==0);
-	write_page_to_disk(SWAPPING_DISK,P2V(PTE_ADDR(*pte)),db);
+	while((db=balloc_page(SWAPPING_DEVICE))==0);
+	write_page_to_disk(SWAPPING_DEVICE,P2V(PTE_ADDR(*pte)),db);
 	set_swapped(*pte);
 	clear_present(*pte);
 	*pte = (*pte & ((uint)0x0fff))|(db<<12);
@@ -45,7 +45,7 @@ swap_page(pde_t *pgdir)
 
 void allocate_page(pde_t *pgdir,uint addr)
 {
-	while(allocuvm(pgdir,PGROUNDDOWN(addr),PGROUNDDOWN(addr)+PGSIZE)==0)
+	while(allocuvm(pgdir,PGROUNDOWN(addr),PGROUNDOWN(addr)+PGSIZE)==0)
 	{
 		swap_page(pgdir);
 	}
@@ -79,7 +79,7 @@ map_address(pde_t *pgdir, uint addr)
 	if(swapped(*pte))
 	{
 		uint db = get_swapped_block_id(pte);
-		clear_swap(*pte);
+		unset_swapped(*pte);
 		read_page_from_disk(SWAPPING_DISK,P2V(PTE_ADDR(*pte)),db);
 		bfree_page(SWAPPING_DISK,db);
 		

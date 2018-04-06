@@ -190,13 +190,13 @@ void            clearpteu(pde_t *pgdir, char *uva);
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
 
 #define swap_bit (((uint)1<<9))
-#define set_swapped(x) ((x)=((uint)(x)|swap_bit)) 
-#define clear_swap(x) ((x) = ((uint)(x) & (~(uint)0 ^ swap_bit)))
+#define set_swap(x) ((x)=((uint)(x)|swap_bit)) 
+#define clear_swap(x) ((x) = ((uint)(x) & (~(uint)0 ^ SWAP_BIT)))
 #define clear_access(x) ((x) = ((uint)(x) & (~(uint)0 ^ PTE_A)))
-#define swapped(x) ((uint)(x) & swap_bit)
-#define clear_present(x) ((x) = ((uint)(x) & (~(uint)0 ^ PTE_P)))
-#define SWAPPING_DISK ROOTDEV
-static inline uint get_swapped_block_id(const uint *pte)
+#define swapped(x) ((uint)(x) & SWAP_BIT)
+#define clear_present(x) (x) = ((uint)(x) & (~(uint)0 ^ PTE_P)))
+#define SWAPPING_DEVICE ROOTDEV
+static inline pte_t get_swapped_block_id(const pte_t *pte)
 {
 	return (*pte)/(1<<12);
 }

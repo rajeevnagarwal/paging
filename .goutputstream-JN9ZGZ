@@ -372,9 +372,9 @@ clearaccessbit(pde_t *pgdir)
 			{
 				pde = &pgdir[i];
 				j = rand();
-				if(*pde&PTE_P)
+				if(pde&PTE_P)
 				{
-					clear_access(pde[j]);
+					clear_access(pde[j])
 					flag = 1;
 				}
 				else

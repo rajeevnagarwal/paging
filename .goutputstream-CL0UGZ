@@ -8,7 +8,7 @@
 #include "elf.h"
 #include "paging.h"
 #include "fs.h"
-
+#include "defs.h"
 
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()
@@ -320,7 +320,7 @@ select_a_victim(pde_t *pgdir)
 	int i,j;
 	pde_t *pde;
 	pte_t *victim = 0;
-	//int k = 10;
+	int k = 10;
 	while(victim==0)
 	{
 		for(i=0;i<NPDENTRIES;i++)
@@ -372,9 +372,9 @@ clearaccessbit(pde_t *pgdir)
 			{
 				pde = &pgdir[i];
 				j = rand();
-				if(*pde&PTE_P)
+				if(pde&PTE_P)
 				{
-					clear_access(pde[j]);
+					clear_access(pde[j])
 					flag = 1;
 				}
 				else
