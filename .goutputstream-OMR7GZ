@@ -102,12 +102,12 @@ write_page_to_disk(uint dev, char *pg, uint blk)
 	int i=0;
 	for(;i<8;i++){
 		struct buf* bp=bget(dev,blk+i);
-		begin_op();
 		memmove(bp->data,pg+512,512);
-		//bwrite(bp);
+		bwrite(bp);
+		//begin_op();
 		log_write(bp);
 		brelse(bp);
-		end_op();
+		//end_op();
 	}
 }
 
@@ -134,11 +134,10 @@ cprintf("Inside bread\n");
 struct buf *b;
 
   b = bget(dev, blockno);
- //cprintf("%d %d",b->flags,B_VALID);
+ cprintf("%d %d",b->flags,B_VALID);
   if((b->flags & B_VALID) == 0) {
     iderw(b);
   }
- //cprintf("Done");
   return b;
 }
 

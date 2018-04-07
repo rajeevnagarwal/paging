@@ -54,7 +54,7 @@ swap_page(pde_t *pgdir)
 	//return 1;
 }
 
-void allocate_page(pde_t *pgdir,uint addr)
+static void allocate_page(pde_t *pgdir,uint addr)
 {
 	cprintf("In allocate_page\n");	
 	while(allocuvm(pgdir,PGROUNDDOWN(addr),PGROUNDDOWN(addr)+PGSIZE)==0)
@@ -76,9 +76,9 @@ map_address(pde_t *pgdir, uint addr)
 	cprintf("In map_address\n");
 	pde_t *pde;
 	pte_t *pte;
-	struct proc *curproc = myproc();
-	if(addr>curproc->sz)
-		panic("Error");
+	//struct proc *curproc = myproc();
+	/*if(addr>curproc->sz)
+		panic("Error");*/
 	pte = uva2pte(pgdir, addr);
 	if(pte==0)
 	{

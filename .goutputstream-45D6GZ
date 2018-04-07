@@ -464,8 +464,6 @@ sys_swap(void)
   pte_t *pte;
   pde_t *pde;
   pde_t *pgdir;
- if(argint(0, (int*)&addr) < 0)
-    return -1;
   struct proc *curproc = myproc();
   pgdir = curproc->pgdir;
   pte = uva2pte(pgdir, addr);
@@ -490,6 +488,8 @@ sys_swap(void)
   switchuvm(curproc);
    return 0;
 
-  
-  
+  if(argint(0, (int*)&addr) < 0)
+    return -1;
+  // swap addr
+  return 0;
 }

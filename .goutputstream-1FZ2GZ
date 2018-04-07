@@ -499,17 +499,12 @@ copyuvm(pde_t *pgdir, uint sz)
 	if(swapped(*pte))
 	{
 		cprintf("swapped");
-		uint db = get_swapped_block_id(pte);
-		clear_swap(*pte);
-		read_page_from_disk(SWAPPING_DISK,P2V(PTE_ADDR(*pte)),db);
-		bfree_page(SWAPPING_DISK,db);
-		
+		allocate_page(pgdir,i);
 	}
 	else
 	{
 		cprintf("Not swapped");
-		//panic("copyuvm: page not present");
-		allocate_page(pgdir,i);
+		panic("copyuvm: page not present");
 	}
 	//uint db = get_swapped_block_id(pte);
 	//clear_swap(*pte);

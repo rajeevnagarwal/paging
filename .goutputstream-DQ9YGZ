@@ -117,10 +117,11 @@ write_page_to_disk(uint dev, char *pg, uint blk)
 void
 read_page_from_disk(uint dev, char *pg, uint blk)
 {
-	cprintf("Inside read_page_from_disk\n");	
-	int i=0;
+	cprintf("Inside read_page_from_disk\n");
+	struct buf* bp = bread(dev,blk+i);	
+	int i;
 	for(;i<8;i++){
-		struct buf* bp = bread(dev,blk+i);
+		
 		memmove(pg+512,bp->data,512);
 	}
 }

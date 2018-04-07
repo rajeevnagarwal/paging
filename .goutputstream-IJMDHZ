@@ -104,7 +104,7 @@ write_page_to_disk(uint dev, char *pg, uint blk)
 		struct buf* bp=bget(dev,blk+i);
 		begin_op();
 		memmove(bp->data,pg+512,512);
-		//bwrite(bp);
+		bwrite(bp);
 		log_write(bp);
 		brelse(bp);
 		end_op();
