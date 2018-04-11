@@ -26,12 +26,12 @@ swap_page_from_pte(pte_t *pte)
 	write_page_to_disk(SWAPPING_DISK,P2V(PTE_ADDR(*pte)),db);
 	cprintf("page written to disk ");
 	char *to_free = P2V(PTE_ADDR(*pte));
-	set_swapped(*pte);
+	//set_swapped(*pte);
 	clear_present(*pte);
 	if(db>=(1<<20))
 		panic("Error");
-	*pte = (*pte & ((uint)0x0fff))|(db<<12);
-	//set_swapped(*pte);
+	*pte = (*pte & ((uint)0xfff))|(db<<12);
+	set_swapped(*pte);
 	//cprintf("%s\n",to_free);
 	kfree(to_free);
 	

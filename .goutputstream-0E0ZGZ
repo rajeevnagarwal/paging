@@ -158,7 +158,6 @@ bfree_page(int dev, uint b)
 			log_write(bp);
 			brelse(bp);
 			end_op();
-			numallocblocks-=8;
 		}
 	}
 	/*m=0xff;

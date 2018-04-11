@@ -25,13 +25,13 @@ swap_page_from_pte(pte_t *pte)
 	cprintf("db allocated ");
 	write_page_to_disk(SWAPPING_DISK,P2V(PTE_ADDR(*pte)),db);
 	cprintf("page written to disk ");
-	char *to_free = P2V(PTE_ADDR(*pte));
 	set_swapped(*pte);
+	char *to_free = P2V(PTE_ADDR(*pte));
+	
 	clear_present(*pte);
 	if(db>=(1<<20))
 		panic("Error");
-	*pte = (*pte & ((uint)0x0fff))|(db<<12);
-	//set_swapped(*pte);
+	*pte = (*pte & ((uint)0xfff))|(db<<12);
 	//cprintf("%s\n",to_free);
 	kfree(to_free);
 	
@@ -104,11 +104,11 @@ map_address(pde_t *pgdir, uint addr)
 	{
 		cprintf("Pte Swapped ");	
 		uint db = get_swapped_block_id(pte);
-		allocate_page(pgdir,addr);
 		clear_swap(*pte);
+		allocate_page(pgdir,addr);
 		read_page_from_disk(SWAPPING_DISK,P2V(PTE_ADDR(*pte)),db);
 		bfree_page(SWAPPING_DISK,db);
-		//set_present(*pte);
+		set_present(*pte);
 		
 		
 	}

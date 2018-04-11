@@ -103,7 +103,7 @@ write_page_to_disk(uint dev, char *pg, uint blk)
 	for(;i<8;i++){
 		struct buf* bp=bget(dev,blk+i);
 		begin_op();
-		memmove(bp->data,pg+(i*512),512);
+		memmove(bp->data,pg+(512*i),512);
 		//bwrite(bp);
 		log_write(bp);
 		brelse(bp);
@@ -121,7 +121,7 @@ read_page_from_disk(uint dev, char *pg, uint blk)
 	int i=0;
 	for(;i<8;i++){
 		struct buf* bp = bread(dev,blk+i);
-		memmove(pg+(i*512),bp->data,512);
+		memmove(pg+(512*i),bp->data,512);
 	}
 }
 

@@ -69,8 +69,7 @@ balloc(uint dev)
     for(bi = 0; bi < BPB && b + bi < sb.size; bi++){
       m = 1 << (bi % 8);
       if((bp->data[bi/8] & m) == 0){  // Is block free?
-	//begin_op();        
-	bp->data[bi/8] |= m;  // Mark block in use.
+        bp->data[bi/8] |= m;  // Mark block in use.
 	//begin_op();        
 	log_write(bp);
         brelse(bp);bzero(dev, b + bi);
@@ -97,31 +96,15 @@ balloc_page(uint dev)
 	bp = 0;
 	for(b=0;b<sb.size; b+=BPB){
 		bp = bread(dev,BBLOCK(b,sb));
-		for(bi = 0; bi<BPB && b+bi<sb.size;bi+=8){
-			
-			int ci;
-			for(ci=bi;ci<bi+8;ci++){
-				m = 1 << (ci % 8);
-				if(((bp->data[ci/8])&m) == 1){
-					break;
-				}
-			}
-			if(ci==bi+8){
-				/*begin_op();
+		for(bi = 0; bi<BPB && b+bi<sb.size;bi++){
+			m = (1 << 8) - 1;
+			if((bp->data[bi] & m) == 0){
+				begin_op();
 				bp->data[bi] |=m;
 				log_write(bp);
 				brelse(bp);
 				bzero(dev,b+bi);
-				end_op();*/
-				for(ci=bi;ci<bi+8;ci++){
-					m = 1 << (ci % 8);
-					begin_op();
-					bp->data[ci/8] |=m;
-					log_write(bp);
-					brelse(bp);
-					bzero(dev,b+ci);
-					end_op();
-				}
+				end_op();
 				numallocblocks+=8;
 				return b + bi; 
 			}
@@ -138,31 +121,14 @@ bfree_page(int dev, uint b)
 {
 	cprintf("In bfree_page\n");	
 	struct buf *bp;
-	int bi,ci,m;
+	int bi,m;
 
 	readsb(dev,&sb);
 	bp = bread(dev,BBLOCK(b,sb));
 	bi = b % BPB;
-	
-	for(ci=bi;ci<bi+8;ci++){
-		m=1<<(ci%8);
-		if((bp->data[ci/8] & m)==1){
-			break;
-		}
-	}
-	if(ci==bi+8){
-		for(ci=bi;ci<bi+8;ci++){
-			m=1<<(ci%8);
-			begin_op();
-			bp->data[ci/8] &= ~m;
-			log_write(bp);
-			brelse(bp);
-			end_op();
-			numallocblocks-=8;
-		}
-	}
-	/*m=0xff;
-	if(bp->data[bi]!=m){
+
+	m=(1 << 8) - 1;
+	if((bp->data[bi]) - m)!=0){
 		panic("Already Freed");
 	}
 	begin_op();
@@ -170,7 +136,7 @@ bfree_page(int dev, uint b)
 	log_write(bp);
 	brelse(bp);
 	end_op();
-	numallocblocks-=8;*/
+	numallocblocks-=8;
 }
 
 // Free a disk block.
@@ -188,10 +154,10 @@ bfree(int dev, uint b)
   if((bp->data[bi/8] & m) == 0)
     panic("freeing free block");
   bp->data[bi/8] &= ~m;
-  //begin_op();
+  begin_op();
   log_write(bp);
   brelse(bp);
-  //end_op();
+  end_op();
 }
 
 // Inodes.

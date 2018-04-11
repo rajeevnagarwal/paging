@@ -30,7 +30,7 @@ swap_page_from_pte(pte_t *pte)
 	clear_present(*pte);
 	if(db>=(1<<20))
 		panic("Error");
-	*pte = (*pte & ((uint)0x0fff))|(db<<12);
+	*pte = (*pte & ((uint)0xfff))|(db<<12);
 	//set_swapped(*pte);
 	//cprintf("%s\n",to_free);
 	kfree(to_free);

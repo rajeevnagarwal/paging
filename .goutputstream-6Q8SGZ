@@ -98,30 +98,20 @@ balloc_page(uint dev)
 	for(b=0;b<sb.size; b+=BPB){
 		bp = bread(dev,BBLOCK(b,sb));
 		for(bi = 0; bi<BPB && b+bi<sb.size;bi+=8){
-			
+			m = 1 << (bi % 8);
 			int ci;
 			for(ci=bi;ci<bi+8;ci++){
-				m = 1 << (ci % 8);
 				if(((bp->data[ci/8])&m) == 1){
 					break;
 				}
 			}
 			if(ci==bi+8){
-				/*begin_op();
+				begin_op();
 				bp->data[bi] |=m;
 				log_write(bp);
 				brelse(bp);
 				bzero(dev,b+bi);
-				end_op();*/
-				for(ci=bi;ci<bi+8;ci++){
-					m = 1 << (ci % 8);
-					begin_op();
-					bp->data[ci/8] |=m;
-					log_write(bp);
-					brelse(bp);
-					bzero(dev,b+ci);
-					end_op();
-				}
+				end_op();
 				numallocblocks+=8;
 				return b + bi; 
 			}
@@ -143,22 +133,19 @@ bfree_page(int dev, uint b)
 	readsb(dev,&sb);
 	bp = bread(dev,BBLOCK(b,sb));
 	bi = b % BPB;
-	
+	m=1<<(bi%8);
 	for(ci=bi;ci<bi+8;ci++){
-		m=1<<(ci%8);
 		if((bp->data[ci/8] & m)==1){
 			break;
 		}
 	}
 	if(ci==bi+8){
 		for(ci=bi;ci<bi+8;ci++){
-			m=1<<(ci%8);
 			begin_op();
-			bp->data[ci/8] &= ~m;
+			bp->data[ci/8] & =~m;
 			log_write(bp);
 			brelse(bp);
 			end_op();
-			numallocblocks-=8;
 		}
 	}
 	/*m=0xff;
